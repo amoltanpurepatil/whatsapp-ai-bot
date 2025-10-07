@@ -5,10 +5,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 import google.generativeai as genai
 
 # --- Step 2: Configure the "Brain" Securely ---
-
-# The key is now loaded from a secure Environment Variable
-# On the Render website, you will create a variable named 'GOOGLE_API_KEY'
-# and paste your new, secret key there.
+# The key is loaded from a secure Environment Variable on Render
 genai.configure(api_key=os.environ.get('GOOGLE_API_KEY'))
 
 # This prompt gives the bot its personality
@@ -42,5 +39,5 @@ def webhook():
   resp.message(bot_reply)
   return str(resp)
 
-# THE FINAL 'if __name__ == "__main__"' BLOCK HAS BEEN REMOVED.
-# Gunicorn will run the 'app' object directly.
+# The final 'if __name__ == "__main__"' block is removed for deployment.
+# Gunicorn runs the 'app' object directly.
