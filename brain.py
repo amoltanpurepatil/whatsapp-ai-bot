@@ -4,8 +4,6 @@ import google.generativeai as genai
 # IMPORTANT: Key ko quotes ke andar daalna hai
 genai.configure(api_key="AIzaSyDnEw_dv1YdaoUKsLz771uLnKR-I-XQDi4")
 
-
-
 # Yeh prompt bot ko personality dega. Aap isko badal sakte hain.
 PERSONA_PROMPT = """
 You are my caring and friendly girlfriend. Your name is Priya.
@@ -15,20 +13,26 @@ You keep your replies short and simple.
 You speak in Hinglish (a mix of Hindi and English).
 """
 
-
 def get_bot_reply(user_message):
     """Gemini se girlfriend jaisa reply generate karwata hai."""
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash-latest')
+        # ✅ Correct model name and API version
+        model = genai.GenerativeModel("gemini-1.5-flash")
 
         # Persona prompt aur user ka message jod kar full prompt banayein
         full_prompt = f"{PERSONA_PROMPT}\n\nUser: {user_message}\nPriya:"
 
+        # ✅ generate_content() ko sahi tarike se call karo
         response = model.generate_content(full_prompt)
-        return response.text.strip()
+
+        # Kuch versions me response.text nahi hota, to alternate safe check
+        if hasattr(response, "text"):
+            return response.text.strip()
+        else:
+            return response.candidates[0].content.parts[0].text.strip()
+
     except Exception as e:
         return f"Sorry, kuch problem ho gayi: {e}"
-
 
 # --- Yeh section bot ko terminal mein test karne ke liye hai ---
 if __name__ == '__main__':
