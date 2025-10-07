@@ -18,14 +18,27 @@ You speak in Hinglish (a mix of Hindi and English).
 """
 
 def get_bot_reply(user_message):
-  """Generates a girlfriend-like reply from Gemini."""
-  try:
-    model = genai.GenerativeModel('gemini-1.5-flash-latest')
-    full_prompt = f"{PERSONA_PROMPT}\n\nUser: {user_message}\nPriya:"
-    response = model.generate_content(full_prompt)
-    return response.text.strip()
-  except Exception as e:
-    return f"Sorry, kuch problem ho gayi: {e}"
+    """Generates a girlfriend-like reply from Gemini."""
+    try:
+        # ✅ Fixed model name (remove "-latest")
+        model = genai.GenerativeModel('gemini-1.5-flash')
+
+        # Combine personality prompt and user message
+        full_prompt = f"{PERSONA_PROMPT}\n\nUser: {user_message}\nPriya:"
+
+        # Generate reply from Gemini
+        response = model.generate_content(full_prompt)
+
+        # ✅ Safer text extraction (handles both response formats)
+        if hasattr(response, "text") and response.text:
+            return response.text.strip()
+        elif hasattr(response, "candidates") and response.candidates:
+            return response.candidates[0].content.parts[0].text.strip()
+        else:
+            return "Hmm... kuch samajh nahi aaya 😅"
+
+    except Exception as e:
+        return f"Sorry, kuch problem ho gayi: {e}"
 
 # --- Step 3: Create the Flask server ---
 app = Flask(__name__)
@@ -33,11 +46,11 @@ app = Flask(__name__)
 # --- Step 4: Create the webhook that receives messages from Twilio ---
 @app.route('/webhook', methods=['POST'])
 def webhook():
-  incoming_msg = request.values.get('Body', '').strip()
-  bot_reply = get_bot_reply(incoming_msg)
-  resp = MessagingResponse()
-  resp.message(bot_reply)
-  return str(resp)
+    incoming_msg = request.values.get('Body', '').strip()
+    bot_reply = get_bot_reply(incoming_msg)
 
-# The final 'if __name__ == "__main__"' block is removed for deployment.
-# Gunicorn runs the 'app' object directly.
+    resp = MessagingResponse()
+    resp.message(bot_reply)
+    return str(resp)
+
+# No __main__ block (Gunicorn runs app automatically)
