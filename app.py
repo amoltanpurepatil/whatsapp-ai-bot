@@ -20,16 +20,16 @@ You speak in Hinglish (a mix of Hindi and English).
 def get_bot_reply(user_message):
     """Generates a girlfriend-like reply from Gemini."""
     try:
-        # ✅ Fixed model name (remove "-latest")
+        # ✅ Fixed model name (no -latest, correct version)
         model = genai.GenerativeModel('gemini-1.5-flash')
 
-        # Combine personality prompt and user message
+        # Combine the persona and user message
         full_prompt = f"{PERSONA_PROMPT}\n\nUser: {user_message}\nPriya:"
 
-        # Generate reply from Gemini
+        # Generate response
         response = model.generate_content(full_prompt)
 
-        # ✅ Safer text extraction (handles both response formats)
+        # ✅ Safely extract text (for different SDK versions)
         if hasattr(response, "text") and response.text:
             return response.text.strip()
         elif hasattr(response, "candidates") and response.candidates:
@@ -38,6 +38,7 @@ def get_bot_reply(user_message):
             return "Hmm... kuch samajh nahi aaya 😅"
 
     except Exception as e:
+        # Return clean error message (shown in WhatsApp if API fails)
         return f"Sorry, kuch problem ho gayi: {e}"
 
 # --- Step 3: Create the Flask server ---
@@ -46,11 +47,17 @@ app = Flask(__name__)
 # --- Step 4: Create the webhook that receives messages from Twilio ---
 @app.route('/webhook', methods=['POST'])
 def webhook():
+    # Get message sent from user (via Twilio)
     incoming_msg = request.values.get('Body', '').strip()
+
+    # Get AI-generated reply
     bot_reply = get_bot_reply(incoming_msg)
 
+    # Prepare Twilio response
     resp = MessagingResponse()
     resp.message(bot_reply)
     return str(resp)
 
-# No __main__ block (Gunicorn runs app automatically)
+# --- Note ---
+# No 'if __name__ == "__main__"' block is needed here.
+# On Render, Gunicorn automatically runs the Flask 'app' object.
