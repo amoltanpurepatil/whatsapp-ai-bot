@@ -1,6 +1,8 @@
 Flask==3.0.3
 twilio==9.2.3
-google-generativeai>=0.9.0
+google-generativeai==0.8.5
 gunicorn==22.0.0
+
+
 
 
